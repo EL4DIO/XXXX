@@ -1,0 +1,33 @@
+name: Update Current Time
+
+on:
+  schedule:
+    
+    - cron: '30 20 * * *'
+    - cron: '42 20 * * *'
+    - cron: '53 20 * * *'
+    - cron: '02 21 * * *'
+    - cron: '23 21 * * *'
+    - cron: '34 21 * * *'
+
+jobs:
+  update_time:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get current time
+        run: |
+          CURRENT_TIME=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          echo "$CURRENT_TIME" >> time.txt
+
+      - name: Commit updated time
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add time.txt
+          git commit -m "Update time to $CURRENT_TIME"
+          git push https://github.com/${{ github.repository }}.git HEAD:main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
