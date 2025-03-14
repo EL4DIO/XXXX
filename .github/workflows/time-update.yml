@@ -2,27 +2,39 @@ name: Update Current Time
 
 on:
   schedule:
-    - cron: '*/10 * * * *'  
-  workflow_dispatch:  
+    - cron: '*/10 * * * *'  # Runs every 10 minutes
+  workflow_dispatch:  # Allows manual trigger for testing
 
 jobs:
   update_time:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
+      - name: Set up Git configuration
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+
+      # Step to get current time and create or update the file
       - name: Get current time
         run: |
           CURRENT_TIME=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
           echo "$CURRENT_TIME" >> time.txt
+        continue-on-error: true  # Continue execution even if this step fails
 
+      # Step to commit the updated time
       - name: Commit updated time
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@users.noreply.github.com"
-          git add time.txt
-          git commit -m "Update time to $CURRENT_TIME"
-          git push https://github.com/${{ github.repository }}.git HEAD:main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          current_second=$(date +%S)
+          echo "$current_second"
+          
+          if [ "$current_second" -eq 0 ] || [ "$current_second" -eq 10 ] || [ "$current_second" -eq 52 ]; then
+                echo "[+] $current_second"
+                git add time.txt
+                git commit -m "Update time to $CURRENT_TIME"
+                git push https://github.com/${{ github.repository }}.git HEAD:main
+          fi
+
+        continue-on-error: true  # Continue execution even if this step fails
